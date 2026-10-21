@@ -1,0 +1,3 @@
+Acceso: admin/admin123, bibliotecario/biblio123, lector/lector123 
+
+http://127.0.0.1:8000
