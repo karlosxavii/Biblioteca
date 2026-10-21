@@ -2,7 +2,7 @@
 
 Sistema de gestión de biblioteca para registrar libros, autores, ejemplares físicos, lectores y préstamos con fechas de entrega y devolución.
 
-Proyecto desarrollado con **Django 6.1.2** y **SQLite**. No utiliza Flask ni MySQL.
+Proyecto desarrollado con **Django 6.1.2** y **SQLite**.
 
 ## Funcionalidades
 
