@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Ejemplares · {{ APP_NAME }}{% endblock %}
+{% block page_title %}Ejemplares{% endblock %}
+{% block page_subtitle %}Copias físicas disponibles en la biblioteca{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <form class="filters" method="get">
+        <input type="search" name="q" value="{{ query }}" placeholder="Buscar por código, libro o ubicación">
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            {% for valor, etiqueta in estados %}
+            <option value="{{ valor }}" {% if estado_actual == valor %}selected{% endif %}>{{ etiqueta }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-secondary" type="submit">Filtrar</button>
+        {% if query or estado_actual %}<a class="btn btn-ghost" href="{% url 'catalogo:ejemplar_list' %}">Limpiar</a>{% endif %}
+    </form>
+    {% if user.puede_gestionar %}
+    <a class="btn btn-primary" href="{% url 'catalogo:ejemplar_create' %}">Nuevo ejemplar</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if ejemplares %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Libro</th>
+                    <th>Estado</th>
+                    <th>Ubicación</th>
+                    <th>Alta</th>
+                    <th class="right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ejemplar in ejemplares %}
+                <tr>
+                    <td><strong>{{ ejemplar.codigo }}</strong></td>
+                    <td>
+                        <a href="{% url 'catalogo:libro_detail' ejemplar.libro_id %}">{{ ejemplar.libro.titulo }}</a>
+                    </td>
+                    <td>
+                        <span class="badge {% if ejemplar.estado == 'DISPONIBLE' %}badge-ok{% elif ejemplar.estado == 'PRESTADO' %}badge-warning{% elif ejemplar.estado == 'BAJA' %}badge-danger{% else %}badge-muted{% endif %}">
+                            {{ ejemplar.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ ejemplar.ubicacion|default:"—" }}</td>
+                    <td>{{ ejemplar.fecha_alta|date:"d/m/Y" }}</td>
+                    <td class="actions">
+                        <a class="link" href="{% url 'catalogo:libro_detail' ejemplar.libro_id %}">Ver libro</a>
+                        {% if user.puede_gestionar %}
+                        <a class="link" href="{% url 'catalogo:ejemplar_update' ejemplar.pk %}">Editar</a>
+                        <form method="post" action="{% url 'catalogo:ejemplar_delete' ejemplar.pk %}" data-confirm="¿Eliminar el ejemplar {{ ejemplar.codigo }}?">
+                            {% csrf_token %}
+                            <button class="link danger" type="submit">Eliminar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No hay ejemplares que coincidan con el filtro.</p>
+        {% if user.puede_gestionar %}<a class="btn btn-primary" href="{% url 'catalogo:ejemplar_create' %}">Registrar ejemplar</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

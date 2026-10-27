@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar libro{% else %}Nuevo libro{% endif %} · {{ APP_NAME }}{% endblock %}
+{% block page_title %}{% if object %}Editar libro{% else %}Nuevo libro{% endif %}{% endblock %}
+{% block page_subtitle %}Datos bibliográficos y autores{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    {% include "partials/form_errors.html" %}
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% include "partials/form_field.html" with field=form.titulo extra_class="full" %}
+        {% include "partials/form_field.html" with field=form.isbn %}
+        {% include "partials/form_field.html" with field=form.editorial %}
+        {% include "partials/form_field.html" with field=form.anio_publicacion %}
+        {% include "partials/form_field.html" with field=form.idioma %}
+        {% include "partials/form_field.html" with field=form.genero %}
+        {% include "partials/form_field.html" with field=form.autores extra_class="full" %}
+        {% include "partials/form_field.html" with field=form.sinopsis extra_class="full" %}
+        <div class="form-actions full">
+            <a class="btn btn-ghost" href="{% url 'catalogo:libro_list' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar libro</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

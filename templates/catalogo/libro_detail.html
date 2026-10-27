@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ libro.titulo }} · {{ APP_NAME }}{% endblock %}
+{% block page_title %}{{ libro.titulo }}{% endblock %}
+{% block page_subtitle %}{{ libro.autores_texto }}{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'catalogo:libro_list' %}">← Volver al catálogo</a>
+    {% if user.puede_gestionar %}
+    <div class="actions">
+        <a class="btn btn-secondary" href="{% url 'catalogo:ejemplar_create' %}?libro={{ libro.pk }}">Agregar ejemplar</a>
+        <a class="btn btn-secondary" href="{% url 'catalogo:libro_update' libro.pk %}">Editar libro</a>
+        <form method="post" action="{% url 'catalogo:libro_delete' libro.pk %}" data-confirm="¿Eliminar el libro y todos sus ejemplares?">
+            {% csrf_token %}
+            <button class="btn btn-ghost danger" type="submit">Eliminar</button>
+        </form>
+        <a class="btn btn-primary" href="{% url 'prestamos:create' %}">Registrar préstamo</a>
+    </div>
+    {% endif %}
+</div>
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h2>Información del libro</h2>
+            <p class="muted">Datos bibliográficos</p>
+        </div>
+        <div class="actions">
+            <span class="badge badge-muted">{{ libro.total_ejemplares }} ejemplares</span>
+            <span class="badge {% if libro.ejemplares_disponibles %}badge-ok{% else %}badge-danger{% endif %}">{{ libro.ejemplares_disponibles }} disponibles</span>
+        </div>
+    </header>
+    <div class="detail-grid">
+        <div>
+            <span class="stat-label">ISBN</span>
+            <p>{{ libro.isbn }}</p>
+        </div>
+        <div>
+            <span class="stat-label">Editorial</span>
+            <p>{{ libro.editorial|default:"—" }}</p>
+        </div>
+        <div>
+            <span class="stat-label">Año</span>
+            <p>{{ libro.anio_publicacion|default:"—" }}</p>
+        </div>
+        <div>
+            <span class="stat-label">Idioma</span>
+            <p>{{ libro.get_idioma_display }}</p>
+        </div>
+        <div>
+            <span class="stat-label">Género</span>
+            <p>{{ libro.genero|default:"—" }}</p>
+        </div>
+        <div>
+            <span class="stat-label">Autores</span>
+            <p>{{ libro.autores_texto|default:"—" }}</p>
+        </div>
+        <div class="full">
+            <span class="stat-label">Sinopsis</span>
+            <p class="sinopsis">{{ libro.sinopsis|default:"Sin sinopsis registrada."|linebreaksbr }}</p>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <header class="card-header">
+        <div>
+            <h2>Ejemplares</h2>
+            <p class="muted">Copias físicas de este libro</p>
+        </div>
+        {% if user.puede_gestionar %}
+        <a class="link" href="{% url 'catalogo:ejemplar_create' %}?libro={{ libro.pk }}">Agregar ejemplar</a>
+        {% endif %}
+    </header>
+    {% if libro.ejemplares.exists %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Estado</th>
+                    <th>Ubicación</th>
+                    <th>Préstamo activo</th>
+                    <th class="right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ejemplar in libro.ejemplares.all %}
+                <tr>
+                    <td><strong>{{ ejemplar.codigo }}</strong></td>
+                    <td>
+                        <span class="badge {% if ejemplar.estado == 'DISPONIBLE' %}badge-ok{% elif ejemplar.estado == 'PRESTADO' %}badge-warning{% elif ejemplar.estado == 'BAJA' %}badge-danger{% else %}badge-muted{% endif %}">
+                            {{ ejemplar.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ ejemplar.ubicacion|default:"—" }}</td>
+                    <td>
+                        {% with activo=ejemplar.prestamo_activo %}
+                        {% if activo %}
+                            {% if user.puede_gestionar %}
+                            <a class="link" href="{% url 'prestamos:detail' activo.prestamo_id %}">{{ activo.prestamo.codigo }} · {{ activo.prestamo.lector.nombre_completo }}</a>
+                            {% else %}
+                            <span class="muted">No disponible</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="muted">—</span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td class="actions">
+                        {% if user.puede_gestionar %}
+                        <a class="link" href="{% url 'catalogo:ejemplar_update' ejemplar.pk %}">Editar</a>
+                        <form method="post" action="{% url 'catalogo:ejemplar_delete' ejemplar.pk %}" data-confirm="¿Eliminar el ejemplar {{ ejemplar.codigo }}?">
+                            {% csrf_token %}
+                            <button class="link danger" type="submit">Eliminar</button>
+                        </form>
+                        {% else %}
+                        <span class="muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><p>Este libro no tiene ejemplares registrados.</p></div>
+    {% endif %}
+</section>
+{% endblock %}

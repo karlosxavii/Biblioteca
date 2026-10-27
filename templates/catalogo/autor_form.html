@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar autor{% else %}Nuevo autor{% endif %} · {{ APP_NAME }}{% endblock %}
+{% block page_title %}{% if object %}Editar autor{% else %}Nuevo autor{% endif %}{% endblock %}
+{% block page_subtitle %}Datos del autor{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    {% include "partials/form_errors.html" %}
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% include "partials/form_field.html" with field=form.nombres %}
+        {% include "partials/form_field.html" with field=form.apellidos %}
+        {% include "partials/form_field.html" with field=form.nacionalidad %}
+        {% include "partials/form_field.html" with field=form.fecha_nacimiento %}
+        {% include "partials/form_field.html" with field=form.biografia extra_class="full" %}
+        <div class="form-actions full">
+            <a class="btn btn-ghost" href="{% url 'catalogo:autor_list' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar autor</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

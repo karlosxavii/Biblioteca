@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Autores · {{ APP_NAME }}{% endblock %}
+{% block page_title %}Autores{% endblock %}
+{% block page_subtitle %}Autores registrados en el catálogo{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+    <form class="filters" method="get">
+        <input type="search" name="q" value="{{ query }}" placeholder="Buscar por nombre o nacionalidad">
+        <button class="btn btn-secondary" type="submit">Buscar</button>
+        {% if query %}<a class="btn btn-ghost" href="{% url 'catalogo:autor_list' %}">Limpiar</a>{% endif %}
+    </form>
+    {% if user.puede_gestionar %}
+    <a class="btn btn-primary" href="{% url 'catalogo:autor_create' %}">Nuevo autor</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if autores %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Autor</th>
+                    <th>Nacionalidad</th>
+                    <th>Libros</th>
+                    <th class="right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for autor in autores %}
+                <tr>
+                    <td>
+                        <strong>{{ autor.nombre_completo }}</strong>
+                        {% if autor.fecha_nacimiento %}<div class="muted small">{{ autor.fecha_nacimiento|date:"d/m/Y" }}</div>{% endif %}
+                    </td>
+                    <td>{{ autor.nacionalidad|default:"—" }}</td>
+                    <td><span class="badge badge-muted">{{ autor.total_libros }}</span></td>
+                    <td class="actions">
+                        <a class="link" href="{% url 'catalogo:libro_list' %}?q={{ autor.nombre_completo|urlencode }}">Ver libros</a>
+                        {% if user.puede_gestionar %}
+                        <a class="link" href="{% url 'catalogo:autor_update' autor.pk %}">Editar</a>
+                        <form method="post" action="{% url 'catalogo:autor_delete' autor.pk %}" data-confirm="¿Eliminar al autor {{ autor.nombre_completo }}?">
+                            {% csrf_token %}
+                            <button class="link danger" type="submit">Eliminar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No hay autores registrados.</p>
+        {% if user.puede_gestionar %}<a class="btn btn-primary" href="{% url 'catalogo:autor_create' %}">Registrar autor</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

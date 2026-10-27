@@ -1,0 +1,98 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+{% with url_name=request.resolver_match.url_name app_name=request.resolver_match.app_name %}
+<div class="app-shell {% if user.is_authenticated %}app-auth{% else %}app-public{% endif %}">
+    {% if user.is_authenticated %}
+    <aside class="sidebar" id="sidebar">
+        <a class="brand" href="{% url 'core:dashboard' %}">
+            <span class="brand-mark">BC</span>
+            <span class="brand-text">
+                <strong>{{ APP_NAME }}</strong>
+                <small>Gestión de biblioteca</small>
+            </span>
+        </a>
+
+        <nav class="nav">
+            <a class="nav-link {% if url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">Panel</a>
+
+            <span class="nav-title">Catálogo</span>
+            <a class="nav-link {% if url_name == 'libro_list' or url_name == 'libro_detail' %}active{% endif %}" href="{% url 'catalogo:libro_list' %}">Libros</a>
+            <a class="nav-link {% if url_name == 'autor_list' %}active{% endif %}" href="{% url 'catalogo:autor_list' %}">Autores</a>
+            <a class="nav-link {% if url_name == 'ejemplar_list' %}active{% endif %}" href="{% url 'catalogo:ejemplar_list' %}">Ejemplares</a>
+
+            <span class="nav-title">Circulación</span>
+            {% if user.puede_gestionar %}
+            <a class="nav-link {% if app_name == 'prestamos' %}active{% endif %}" href="{% url 'prestamos:list' %}">Préstamos</a>
+            <a class="nav-link {% if app_name == 'lectores' %}active{% endif %}" href="{% url 'lectores:list' %}">Lectores</a>
+            {% else %}
+            <a class="nav-link {% if app_name == 'prestamos' %}active{% endif %}" href="{% url 'prestamos:list' %}">Mis préstamos</a>
+            {% endif %}
+
+            {% if user.es_administrador %}
+            <span class="nav-title">Administración</span>
+            <a class="nav-link {% if app_name == 'usuarios' and url_name != 'login' %}active{% endif %}" href="{% url 'usuarios:list' %}">Usuarios</a>
+            <a class="nav-link" href="{% url 'admin:index' %}">Django admin</a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-chip">
+                <span class="avatar">{{ user.inicial }}</span>
+                <span>
+                    <strong>{{ user.nombre_completo }}</strong>
+                    <small>{{ user.rol_label }}</small>
+                </span>
+            </div>
+            <form method="post" action="{% url 'usuarios:logout' %}">
+                {% csrf_token %}
+                <button class="btn btn-ghost btn-block" type="submit">Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+    {% endif %}
+
+    <main class="{% if user.is_authenticated %}main{% else %}public-main{% endif %}">
+        {% if user.is_authenticated %}
+        <header class="topbar">
+            <button class="icon-button" type="button" data-sidebar-toggle aria-label="Abrir menú">☰</button>
+            <div class="topbar-titles">
+                <h1>{% block page_title %}{% endblock %}</h1>
+                <p class="muted">{% block page_subtitle %}{% endblock %}</p>
+            </div>
+            <form class="topbar-search" method="get" action="{% url 'core:buscar' %}">
+                <input type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Buscar libro, lector o préstamo">
+                <button class="btn btn-secondary" type="submit">Buscar</button>
+            </form>
+        </header>
+        {% endif %}
+
+        {% if messages %}
+        <div class="alerts">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" data-alert>
+                <span>{{ message }}</span>
+                <button type="button" class="alert-close" data-alert-close aria-label="Cerrar">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <section class="content">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+</div>
+{% endwith %}
+
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

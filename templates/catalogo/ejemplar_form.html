@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Editar ejemplar{% else %}Nuevo ejemplar{% endif %} · {{ APP_NAME }}{% endblock %}
+{% block page_title %}{% if object %}Editar ejemplar{% else %}Nuevo ejemplar{% endif %}{% endblock %}
+{% block page_subtitle %}Copia física asociada a un libro{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+    {% include "partials/form_errors.html" %}
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% include "partials/form_field.html" with field=form.libro extra_class="full" %}
+        {% include "partials/form_field.html" with field=form.codigo %}
+        {% include "partials/form_field.html" with field=form.estado %}
+        {% include "partials/form_field.html" with field=form.ubicacion %}
+        {% include "partials/form_field.html" with field=form.fecha_alta %}
+        {% include "partials/form_field.html" with field=form.observaciones extra_class="full" %}
+        <div class="form-actions full">
+            <a class="btn btn-ghost" href="{% if object %}{% url 'catalogo:libro_detail' object.libro_id %}{% else %}{% url 'catalogo:ejemplar_list' %}{% endif %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar ejemplar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
